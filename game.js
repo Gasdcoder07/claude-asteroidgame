@@ -60,10 +60,67 @@ class Bullet {
 
 // ── Power-up (disparo triple) ─────────────────────────────────────────────────
 const POWER_UP_STYLES = {
-  triple: { rgb: "0, 255, 255", label: "3" },
-  slow: { rgb: "255, 190, 0", label: "S" },
-  nova: { rgb: "255, 80, 255", label: "N" },
-  hyper: { rgb: "80, 255, 80", label: "H" },
+  triple: { rgb: "0, 255, 255" },
+  slow: { rgb: "255, 190, 0" },
+  nova: { rgb: "255, 80, 255" },
+  hyper: { rgb: "80, 255, 80" },
+};
+
+// Formas en wireframe de cada power-up, dibujadas alrededor del origen con radio r
+const POWER_UP_SHAPES = {
+  // Rombo con tres rayos en abanico (disparo triple)
+  triple(r) {
+    ctx.moveTo(0, -r);
+    ctx.lineTo(r, 0);
+    ctx.lineTo(0, r);
+    ctx.lineTo(-r, 0);
+    ctx.closePath();
+    const ox = -r * 0.5;
+    for (const a of [-0.5, 0, 0.5]) {
+      ctx.moveTo(ox, 0);
+      ctx.lineTo(ox + Math.cos(a) * r * 0.9, Math.sin(a) * r * 0.9);
+    }
+  },
+  // Reloj de arena (cámara lenta)
+  slow(r) {
+    ctx.moveTo(-r * 0.7, -r);
+    ctx.lineTo(r * 0.7, -r);
+    ctx.moveTo(-r * 0.7, r);
+    ctx.lineTo(r * 0.7, r);
+    ctx.moveTo(-r * 0.6, -r);
+    ctx.lineTo(r * 0.6, -r);
+    ctx.lineTo(0, 0);
+    ctx.closePath();
+    ctx.moveTo(-r * 0.6, r);
+    ctx.lineTo(r * 0.6, r);
+    ctx.lineTo(0, 0);
+    ctx.closePath();
+  },
+  // Estrella de 8 puntas (bomba nova)
+  nova(r) {
+    for (let i = 0; i < 16; i++) {
+      const a = (i * Math.PI) / 8 - Math.PI / 2;
+      const rad = i % 2 === 0 ? r : r * 0.4;
+      if (i === 0) ctx.moveTo(Math.cos(a) * rad, Math.sin(a) * rad);
+      else ctx.lineTo(Math.cos(a) * rad, Math.sin(a) * rad);
+    }
+    ctx.closePath();
+  },
+  // Hexágono con doble flecha (hiper propulsión)
+  hyper(r) {
+    for (let i = 0; i < 6; i++) {
+      const a = (i * Math.PI) / 3;
+      if (i === 0) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+      else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+    }
+    ctx.closePath();
+    ctx.moveTo(-r * 0.5, -r * 0.45);
+    ctx.lineTo(r * 0.1, 0);
+    ctx.lineTo(-r * 0.5, r * 0.45);
+    ctx.moveTo(-r * 0.05, -r * 0.45);
+    ctx.lineTo(r * 0.55, 0);
+    ctx.lineTo(-r * 0.05, r * 0.45);
+  },
 };
 
 class PowerUp {
@@ -94,15 +151,11 @@ class PowerUp {
     ctx.save();
     ctx.translate(this.x, this.y);
     ctx.strokeStyle = color;
-    ctx.fillStyle = color;
     ctx.lineWidth = 1.5;
+    ctx.lineJoin = "round";
     ctx.beginPath();
-    ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+    POWER_UP_SHAPES[this.type](this.radius);
     ctx.stroke();
-    ctx.font = "bold 14px monospace";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(style.label, 0, 1);
     ctx.restore();
   }
 }
